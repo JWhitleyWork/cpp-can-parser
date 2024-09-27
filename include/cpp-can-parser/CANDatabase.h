@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 
-#include "cpp_can_parser_export.h"
+#include "cpp-can-parser.h"
 
 namespace CppCAN {
 

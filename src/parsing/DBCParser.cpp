@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <iterator>
 #include <iomanip>
-#include "ParsingUtils.h"
-#include "DBCParser.h"
+#include "cpp-can-parser/ParsingUtils.h"
+#include "cpp-can-parser/DBCParser.h"
 
 using namespace CppCAN::parser::dbc;
 namespace dtl = CppCAN::parser::details;

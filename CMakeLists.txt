@@ -1,13 +1,11 @@
 cmake_minimum_required(VERSION 3.7.0)
 
-project(CPP-CAN-Parser)
+project(CPP-CAN-Parser
+  VERSION 1.0.1
+  LANGUAGES C CXX
+)
 
 include(CTest)
-include(GenerateExportHeader)
-
-set(CPP_CAN_PARSER_INCLUDE_DIRECTORY 
-  ${CMAKE_CURRENT_LIST_DIR}/include
-)
 
 set(CPP_CAN_PARSER_INCLUDE_DIRECTORY_PRIVATE 
   ${CMAKE_CURRENT_LIST_DIR}/src/parsing
@@ -40,20 +38,16 @@ target_include_directories(cpp-can-parser
   PUBLIC
     # Different paths for includes for build and install phase supported
     # via INSTALL_INTERFACE and BUILD_INTERFACE generator expressions.
-    $<BUILD_INTERFACE:${CPP_CAN_PARSER_INCLUDE_DIRECTORY}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-    ${CMAKE_CURRENT_BINARY_DIR}/exports/
+    $<INSTALL_INTERFACE:include/cpp-can-parser>
   PRIVATE
     ${CPP_CAN_PARSER_INCLUDE_DIRECTORY_PRIVATE}
 )
-generate_export_header(cpp-can-parser
-  BASE_NAME cpp_can_parser
-  EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/exports/cpp_can_parser_export.h
-)
-install(FILES cpp-can-parser
-  ${CMAKE_CURRENT_BINARY_DIR}/cpp_can_parser_export.h
-  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/include
+set_target_properties(cpp-can-parser PROPERTIES
+  VERSION ${cpp-can-parser_VERSION}
+  SOVERSION ${cpp-can-parser_VERSION_MAJOR}
+  PUBLIC_HEADER "include/cpp-can-parser/cpp-can-parser.h"
 )
 
 add_executable(can-parse 
@@ -65,6 +59,52 @@ add_executable(can-parse
 target_compile_features(can-parse PUBLIC cxx_std_17)
 set_target_properties(can-parse PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(can-parse cpp-can-parser)
+
+set(CMAKE_INSTALL_CMAKEDIR share/cpp-can-parser/cmake)
+
+install(DIRECTORY include/cpp-can-parser/
+  DESTINATION include/cpp-can-parser
+)
+
+install(
+  TARGETS cpp-can-parser can-parse
+  EXPORT cpp-can-parserTargets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+  PUBLIC_HEADER DESTINATION include
+)
+
+install(EXPORT cpp-can-parserTargets
+  FILE cpp-can-parserTargets.cmake
+  NAMESPACE CPPCANParser::
+  DESTINATION ${CMAKE_INSTALL_CMAKEDIR}
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(cpp-can-parserConfigVersion.cmake
+  COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/cpp-can-parserConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_CMAKEDIR}
+)
+
+install(FILES cpp-can-parserConfig.cmake
+  DESTINATION ${CMAKE_INSTALL_CMAKEDIR}
+)
+
+CONFIGURE_FILE(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+  IMMEDIATE @ONLY
+)
+
+ADD_CUSTOM_TARGET(uninstall
+  "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+)
 
 if(BUILD_TESTING)
   file(COPY tests/dbc-files/
